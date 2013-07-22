@@ -1,0 +1,39 @@
+
+body{
+    background-color: #808080;
+}
+
+h1{
+    text-align: center;
+    font-size: 50px;
+    color:#00008b;
+}
+
+a{
+    font-size: 20px;
+    color:#f5deb3;
+    padding-left: 43%;
+}
+
+h2{
+    text-align: center;
+}
+
+h3{
+    text-align: center;
+    font-size: 37px;
+    color:#00008b;
+}
+
+#frm{
+    margin-left: 43%;
+    background-color: #f5deb3;
+    width: 16%;
+    height: 15%;
+    text-align: center;
+}
+
+#btn{
+    margin-left: 45%;
+}
+
