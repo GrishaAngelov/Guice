@@ -5,18 +5,21 @@ import org.jmock.Mockery;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.sql.Timestamp;
 import java.util.HashMap;
 
 /**
- * @author Grisha Angelov <grisha.angelov@clouway.com>
- */
+* @author Grisha Angelov <grisha.angelov@clouway.com>
+*/
 public class LoginServletTest {
     private LoginServlet loginServlet;
     private CredentialsValidator credentialsValidator;
     private UserRegistry userRegistry;
+    private ExpireTime sessionExpireTime;
     private Mockery context;
     private HttpServletRequest request;
     private HttpServletResponse response;
@@ -27,14 +30,15 @@ public class LoginServletTest {
         request = context.mock(HttpServletRequest.class);
         response = context.mock(HttpServletResponse.class);
         credentialsValidator = context.mock(CredentialsValidator.class);
+        sessionExpireTime = context.mock(ExpireTime.class);
         userRegistry = context.mock(UserRegistry.class);
-        loginServlet = new LoginServlet(credentialsValidator, userRegistry);
+        loginServlet = new LoginServlet(credentialsValidator,userRegistry, sessionExpireTime);
     }
 
     @Test
     public void happyPath() throws Exception {
         final HttpSession session = context.mock(HttpSession.class);
-        final UserCookie cookie = new UserCookie("loginGreet", "Hello, John");
+        final Cookie cookie = new UserCookie("asd","123");
 
         context.checking(new Expectations() {{
 
@@ -44,42 +48,37 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{"123456"});
             }}));
 
-            oneOf(credentialsValidator).validate("John", "123456");
+            oneOf(credentialsValidator).isValid("John", "123456");
             will(returnValue(true));
 
             oneOf(userRegistry).isUserRegistered("John", "123456");
             will(returnValue(true));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).setAttribute("isLogged", true);
+            oneOf(sessionExpireTime).createExpireTimeFor("John");
 
             oneOf(request).getSession();
             will(returnValue(session));
 
-            oneOf(session).setAttribute("username", "John");
+            oneOf(session).setAttribute("username","John");
+
             oneOf(response).addCookie(cookie);
 
             oneOf(request).getSession();
             will(returnValue(session));
 
             oneOf(session).getId();
-            will(returnValue("9asd56"));
+            will(returnValue("asd"));
 
             oneOf(response).addCookie(cookie);
 
-            oneOf(request).getSession();
-            will(returnValue(session));
+            oneOf(sessionExpireTime).getExpireTimeFor("John");
+            will(returnValue(Timestamp.valueOf("2013-07-25 12:06:55")));
 
-            oneOf(session).setMaxInactiveInterval(180);
+            oneOf(response).addCookie(cookie);
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).setAttribute("operationStatus", "");
             oneOf(request).getContextPath();
             oneOf(response).sendRedirect("/index.jsp");
+
         }});
 
         loginServlet.doPost(request, response);
@@ -98,7 +97,7 @@ public class LoginServletTest {
             }}));
 
 
-            oneOf(credentialsValidator).validate("Peter", "asd");
+            oneOf(credentialsValidator).isValid("Peter", "asd");
             will(returnValue(true));
 
             oneOf(userRegistry).isUserRegistered("Peter", "asd");
@@ -123,7 +122,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{"123456"});
             }}));
 
-            oneOf(credentialsValidator).validate("", "123456");
+            oneOf(credentialsValidator).isValid("", "123456");
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");
@@ -145,7 +144,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{""});
             }}));
 
-            oneOf(credentialsValidator).validate("John", "");
+            oneOf(credentialsValidator).isValid("John", "");
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");
@@ -167,7 +166,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{""});
             }}));
 
-            oneOf(credentialsValidator).validate("", "");
+            oneOf(credentialsValidator).isValid("", "");
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");

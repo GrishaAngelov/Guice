@@ -1,5 +1,5 @@
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" session="false" %>
 <html>
   <head>
     <title>Deposit</title>
@@ -33,14 +33,16 @@
       <h1>Deposit</h1>
       <form method="post" action="DepositOperationServlet">
           <input type="text" name="deposit" id="depositAmount">
-          <%--<input type="submit" value="Deposit">--%>
           <button type="button" onclick="validateAmount()">Deposit</button>
       </form>
       <a href="index.jsp">Go back</a>
-      <%--<h2>${status}</h2>--%>
-      <h2><%=session.getAttribute("operationStatus")%></h2>
+
       <%
-          session.setAttribute("operationStatus","");
+          String message = (String) request.getAttribute("operationStatus");
+          if(message==null){
+              message = "";
+          }
       %>
+     <h2><%=message%></h2>
   </body>
 </html>

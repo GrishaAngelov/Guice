@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -34,27 +35,20 @@ public class WithdrawOperationServletTest {
 
     @Test
     public void withdrawAmountHappyPath() throws Exception {
-
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "John&2013-07-25 13:21:55")};
         context.checking(new Expectations() {{
             oneOf(request).getParameter("withdrawAmount");
             will(returnValue("100"));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).getAttribute("username");
-            will(returnValue("John"));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
             oneOf(bankAccount).withdraw("100", "John");
             will(returnValue(true));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
+            oneOf(request).setAttribute("operationStatus", "Amount successfully withdrawn!");
 
-            oneOf(session).setAttribute("operationStatus", "Amount successfully withdrawn!");
-            oneOf(request).getContextPath();
-
-            oneOf(response).sendRedirect("/withdraw.jsp");
+            oneOf(request).getRequestDispatcher("/withdraw.jsp");
         }});
 
         withdrawOperationServlet.doPost(request, response);
@@ -63,26 +57,20 @@ public class WithdrawOperationServletTest {
 
     @Test
     public void withdrawZeroAmount() throws IOException, ServletException {
-
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "John&2013-07-25 13:21:55")};
         context.checking(new Expectations() {{
             oneOf(request).getParameter("withdrawAmount");
             will(returnValue("0"));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
-            oneOf(session).getAttribute("username");
-            will(returnValue("John"));
-
-            oneOf(bankAccount).withdraw("0","John");
+            oneOf(bankAccount).withdraw("0", "John");
             will(throwException(new IncorrectAmountValueException()));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
 
-            oneOf(session).setAttribute("operationStatus", "Amount not withdrawn!");
-            oneOf(request).getContextPath();
-            oneOf(response).sendRedirect("/withdraw.jsp");
+            oneOf(request).setAttribute("operationStatus", "Amount not withdrawn!");
+            oneOf(request).getRequestDispatcher("/withdraw.jsp");
         }});
 
         withdrawOperationServlet.doPost(request, response);
@@ -92,24 +80,16 @@ public class WithdrawOperationServletTest {
 
     @Test
     public void withdrawNegativeAmount() throws Exception {
-
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "John&2013-07-25 13:21:55")};
         context.checking(new Expectations() {{
             oneOf(request).getParameter("withdrawAmount");
             will(returnValue("-100"));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
-            oneOf(session).getAttribute("username");
-            will(returnValue("John"));
-
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).setAttribute("operationStatus", "Amount not withdrawn!");
-
-            oneOf(request).getContextPath();
-            oneOf(response).sendRedirect("/withdraw.jsp");
+            oneOf(request).setAttribute("operationStatus", "Amount not withdrawn!");
+            oneOf(request).getRequestDispatcher("/withdraw.jsp");
 
         }});
 
@@ -119,26 +99,20 @@ public class WithdrawOperationServletTest {
 
     @Test
     public void withdrawAmountWithDotDelimiter() throws Exception {
-
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "John&2013-07-25 13:21:55")};
         context.checking(new Expectations() {{
             oneOf(request).getParameter("withdrawAmount");
             will(returnValue("20.00"));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).getAttribute("username");
-            will(returnValue("John"));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
             oneOf(bankAccount).withdraw("20.00", "John");
             will(returnValue(true));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
 
-            oneOf(session).setAttribute("operationStatus", "Amount successfully withdrawn!");
-            oneOf(request).getContextPath();
-            oneOf(response).sendRedirect("/withdraw.jsp");
+            oneOf(request).setAttribute("operationStatus", "Amount successfully withdrawn!");
+            oneOf(request).getRequestDispatcher("/withdraw.jsp");
         }});
 
         withdrawOperationServlet.doGet(request, response);
@@ -147,26 +121,20 @@ public class WithdrawOperationServletTest {
 
     @Test
     public void withdrawAmountWithCommaDelimiter() throws Exception {
-
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "John&2013-07-25 13:21:55")};
         context.checking(new Expectations() {{
             oneOf(request).getParameter("withdrawAmount");
             will(returnValue("20,00"));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).getAttribute("username");
-            will(returnValue("John"));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
             oneOf(bankAccount).withdraw("20.00", "John");
             will(returnValue(true));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
 
-            oneOf(session).setAttribute("operationStatus", "Amount successfully withdrawn!");
-            oneOf(request).getContextPath();
-            oneOf(response).sendRedirect("/withdraw.jsp");
+            oneOf(request).setAttribute("operationStatus", "Amount successfully withdrawn!");
+            oneOf(request).getRequestDispatcher("/withdraw.jsp");
         }});
 
         withdrawOperationServlet.doGet(request, response);
@@ -175,26 +143,20 @@ public class WithdrawOperationServletTest {
 
     @Test
     public void withdrawAmountWithOnePlaceAfterDotDecimalPoint() throws Exception {
-
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "John&2013-07-25 13:21:55")};
         context.checking(new Expectations() {{
             oneOf(request).getParameter("withdrawAmount");
             will(returnValue("20.0"));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).getAttribute("username");
-            will(returnValue("John"));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
             oneOf(bankAccount).withdraw("20.00", "John");
             will(returnValue(true));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
 
-            oneOf(session).setAttribute("operationStatus", "Amount successfully withdrawn!");
-            oneOf(request).getContextPath();
-            oneOf(response).sendRedirect("/withdraw.jsp");
+            oneOf(request).setAttribute("operationStatus", "Amount successfully withdrawn!");
+            oneOf(request).getRequestDispatcher("/withdraw.jsp");
         }});
 
         withdrawOperationServlet.doGet(request, response);
@@ -203,26 +165,19 @@ public class WithdrawOperationServletTest {
 
     @Test
     public void withdrawAmountWithOnePlaceAfterCommaDecimalPoint() throws Exception {
-
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "John&2013-07-25 13:21:55")};
         context.checking(new Expectations() {{
             oneOf(request).getParameter("withdrawAmount");
             will(returnValue("20,0"));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).getAttribute("username");
-            will(returnValue("John"));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
             oneOf(bankAccount).withdraw("20.00", "John");
             will(returnValue(true));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).setAttribute("operationStatus", "Amount successfully withdrawn!");
-            oneOf(request).getContextPath();
-            oneOf(response).sendRedirect("/withdraw.jsp");
+            oneOf(request).setAttribute("operationStatus", "Amount successfully withdrawn!");
+            oneOf(request).getRequestDispatcher("/withdraw.jsp");
         }});
 
         withdrawOperationServlet.doGet(request, response);
@@ -231,26 +186,19 @@ public class WithdrawOperationServletTest {
 
     @Test
     public void withdrawTooBigAmount() throws IOException, ServletException {
-
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "John&2013-07-25 13:21:55")};
         context.checking(new Expectations() {{
             oneOf(request).getParameter("withdrawAmount");
             will(returnValue("9999999999999999999999"));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).getAttribute("username");
-            will(returnValue("John"));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
             oneOf(bankAccount).withdraw("9999999999999999999999", "John");
             will(throwException(new IncorrectAmountValueException()));
 
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).setAttribute("operationStatus", "Amount not withdrawn!");
-            oneOf(request).getContextPath();
-            oneOf(response).sendRedirect("/withdraw.jsp");
+            oneOf(request).setAttribute("operationStatus", "Amount not withdrawn!");
+            oneOf(request).getRequestDispatcher("/withdraw.jsp");
         }});
 
         withdrawOperationServlet.doGet(request, response);

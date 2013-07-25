@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -36,19 +37,17 @@ public class BalanceServletTest {
     @Test
     public void getBalanceForExistingUser() throws IOException, ServletException {
 
-
-        context.checking(new Expectations(){{
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).getAttribute("username");
-            will(returnValue("pesho"));
+        context.checking(new Expectations() {{
+            Cookie[] cookies = {new Cookie("expireTimeCookie", "pesho&2013-07-25 13:21:55")};
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
             oneOf(bankAccount).getBalance("pesho");
             will(returnValue(new BigDecimal("20.00")));
 
-            oneOf(request).setAttribute("balance","Current Balance: 20.00");
+            oneOf(request).setAttribute("balance", "Current Balance: 20.00");
             oneOf(request).getRequestDispatcher("/balance.jsp");
+
         }});
         balanceServlet.doGet(request, response);
         context.assertIsSatisfied();
@@ -57,12 +56,11 @@ public class BalanceServletTest {
     @Test(expected = NoSuchUserException.class)
     public void getBalanceForUserWithEmptyUsername() throws IOException, ServletException {
 
-        context.checking(new Expectations(){{
-            oneOf(request).getSession();
-            will(returnValue(session));
+        context.checking(new Expectations() {{
+            Cookie[] cookies = {new Cookie("expireTimeCookie", "")};
 
-            oneOf(session).getAttribute("username");
-            will(returnValue(""));
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
 
             oneOf(bankAccount).getBalance("");
             will(throwException(new NoSuchUserException()));

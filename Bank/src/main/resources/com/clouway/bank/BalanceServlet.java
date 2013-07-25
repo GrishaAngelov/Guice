@@ -4,6 +4,7 @@ import com.google.inject.Singleton;
 
 import javax.inject.Inject;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,12 +33,28 @@ public class BalanceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        String username = String.valueOf(req.getSession().getAttribute("username"));
+        String username = getUsernameFromCookie(req);
         BigDecimal amount;
+        if (username != null) {
+            amount = bankAccount.getBalance(username);
+            req.setAttribute("balance", "Current Balance: " + amount);
+            req.getRequestDispatcher("/balance.jsp").forward(req, resp);
+        } else {
+            req.getRequestDispatcher("/logout.jsp").forward(req, resp);
+        }
+    }
 
-        amount = bankAccount.getBalance(username);
+    private String getUsernameFromCookie(HttpServletRequest request) {
+        String username = "";
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (c.getName().equals("expireTimeCookie")) {
+                    username = c.getValue().split("&")[0];
+                }
+            }
+        }
+        return username;
 
-        req.setAttribute("balance", "Current Balance: " + amount);
-        req.getRequestDispatcher("/balance.jsp").forward(req, resp);
     }
 }

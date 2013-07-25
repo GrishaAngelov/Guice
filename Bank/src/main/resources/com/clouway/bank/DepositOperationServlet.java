@@ -3,7 +3,9 @@ package com.clouway.bank;
 import com.google.inject.Singleton;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,10 +17,12 @@ import java.io.IOException;
 @Singleton
 public class DepositOperationServlet extends HttpServlet {
     private Account bankAccount;
+    private double limitAmountValue;
 
     @Inject
-    public DepositOperationServlet(Account bankAccount) {
+    public DepositOperationServlet(Account bankAccount, @Named("limit")double limitAmountValue) {
         this.bankAccount = bankAccount;
+        this.limitAmountValue = limitAmountValue;
     }
 
     public void init() throws ServletException {
@@ -31,19 +35,20 @@ public class DepositOperationServlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         String deposit = checkDelimiter(request.getParameter("deposit"));
-        String username = String.valueOf(request.getSession().getAttribute("username"));
+        String username = getUsernameFromCookie(request);
         try {
+
             boolean isSuccessful = bankAccount.deposit(deposit, username);
 
             if (isSuccessful) {
-                request.getSession().setAttribute("operationStatus", "Amount successfully added!");
+                request.setAttribute("operationStatus", "Amount successfully added!");
             } else {
-                request.getSession().setAttribute("operationStatus", "Amount not added!");
+                request.setAttribute("operationStatus", "Amount not added!");
             }
         } catch (IncorrectAmountValueException e) {
-            request.getSession().setAttribute("operationStatus", "Amount not added!");
+            request.setAttribute("operationStatus", "Amount not added!");
         }
-        response.sendRedirect(request.getContextPath() + "/deposit.jsp");
+        request.getRequestDispatcher("/deposit.jsp").forward(request,response);
     }
 
     public void destroy() {
@@ -59,5 +64,19 @@ public class DepositOperationServlet extends HttpServlet {
             amount = amount.concat("0");
         }
         return amount;
+    }
+
+    private String getUsernameFromCookie(HttpServletRequest request) {
+        String username = "";
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (c.getName().equals("expireTimeCookie")) {
+                    username = c.getValue().split("&")[0];
+                }
+            }
+        }
+        return username;
+
     }
 }

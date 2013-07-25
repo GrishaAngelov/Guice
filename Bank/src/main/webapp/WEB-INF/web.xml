@@ -37,7 +37,7 @@
     </context-param>
 
 
-    <listener>
-        <listener-class>com.clouway.bank.LoggedUsersCounter</listener-class>
-    </listener>
+    <!--<listener>-->
+        <!--<listener-class>com.clouway.bank.LoggedUsersCounter</listener-class>-->
+    <!--</listener>-->
 </web-app>

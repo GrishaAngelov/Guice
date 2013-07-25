@@ -21,7 +21,7 @@ public class RegisterFilter implements Filter {
         String username = request.getParameter("usernameBox");
         String password = request.getParameter("passwordBox");
 
-        if (new UserCredentialsValidator().validate(username, password)) {
+        if (new UserCredentialsValidator().isValid(username, password)) {
             chain.doFilter(request, response);
         } else {
             request.setAttribute("message", "Please enter username and/or password");
