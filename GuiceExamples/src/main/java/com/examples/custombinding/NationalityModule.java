@@ -8,7 +8,7 @@ import com.google.inject.AbstractModule;
 public class NationalityModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(Citizen.class).annotatedWith(Bul.class).to(Bulgarian.class);
-        bind(Citizen.class).annotatedWith(Ger.class).to(German.class);
+        bind(Citizen.class).annotatedWith(BulgarianAnnotation.class).to(Bulgarian.class);
+        bind(Citizen.class).annotatedWith(GermanAnnotation.class).to(German.class);
     }
 }

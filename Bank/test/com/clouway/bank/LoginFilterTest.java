@@ -36,7 +36,32 @@ public class LoginFilterTest {
     }
 
     @Test
-    public void checkUserIsLoggedIn() throws Exception {
+    public void checkUserIsLoggedInWithNotExpiredTime() throws Exception {
+
+        context.checking(new Expectations() {{
+            Cookie[] cookies = {new Cookie("expireTimeCookie", "pesho&2014-07-25 13:21:55")};
+
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
+
+            oneOf(request).getSession();
+            will(returnValue(session));
+
+            oneOf(session).getAttribute("username");
+            will(returnValue("pesho"));
+
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
+
+            oneOf(filterChain).doFilter(request, response);
+        }});
+
+        loginFilter.doFilter(request, response, filterChain);
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    public void checkUserIsLoggedInWithExpiredTime() throws Exception {
 
         context.checking(new Expectations() {{
             Cookie[] cookies = {new Cookie("expireTimeCookie", "pesho&2013-07-25 13:21:55")};
@@ -66,25 +91,9 @@ public class LoginFilterTest {
     public void checkUserIsNotLoggedIn() throws Exception {
 
         context.checking(new Expectations() {{
-            Cookie[] cookies = {new Cookie("expireTimeCookie", "pesho&2013-07-25 13:21:55")};
-
             oneOf(request).getCookies();
-            will(returnValue(cookies));
-
-            oneOf(request).getSession();
-            will(returnValue(session));
-
-            oneOf(session).getAttribute("username");
-            will(returnValue("pesho"));
-
-            oneOf(request).getCookies();
-            will(returnValue(cookies));
-
-            oneOf(expireTime).deleteExpireTimeFor("pesho");
-//            oneOf(request).getRequestedSessionId();
-//            will(returnValue("asd"));
-//
-            oneOf(request).getRequestDispatcher("/logout.jsp");
+            will(returnValue(null));
+            oneOf(request).getRequestDispatcher("/login.jsp");
         }});
 
         loginFilter.doFilter(request, response, filterChain);

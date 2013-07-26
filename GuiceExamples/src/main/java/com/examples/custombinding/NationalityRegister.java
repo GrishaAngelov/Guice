@@ -9,8 +9,8 @@ public class NationalityRegister {
     private Citizen citizen;
 
     @Inject
-    public NationalityRegister(@Bul Citizen citizen) {
-        this.citizen = citizen;
+    public NationalityRegister(@BulgarianAnnotation Citizen registeredCitizen) {
+        this.citizen = registeredCitizen;
     }
 
     public String getNationality(){

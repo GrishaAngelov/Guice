@@ -9,14 +9,14 @@ import java.util.Map;
  */
 public class NationalityRegister {
 
-    private Map<String, Citizen> citizenMap;
+    private Map<String, Citizen> nationalities;
 
     @Inject
-    public NationalityRegister(Map<String, Citizen> citizenMap) {
-        this.citizenMap = citizenMap;
+    public NationalityRegister(Map<String, Citizen> registeredNationalities) {
+        this.nationalities = registeredNationalities;
     }
 
     public Map<String,Citizen> getNationalities() {
-        return citizenMap;
+        return nationalities;
     }
 }
