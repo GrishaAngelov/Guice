@@ -21,6 +21,7 @@ public class IndexServletTest {
         IndexServlet indexServlet = new IndexServlet();
 
         context.checking(new Expectations(){{
+            oneOf(request).getAttribute("greet");
             oneOf(request).getRequestDispatcher("/index.jsp");
         }});
 

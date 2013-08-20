@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 /**
  * @author Grisha Angelov <grisha.angelov@clouway.com>
@@ -17,11 +18,17 @@ import java.io.IOException;
 @Singleton
 public class WithdrawOperationServlet extends HttpServlet {
     private Account bankAccount;
-    @Inject @Named("limit")double limitAmountValue;
+    @Inject
+    @Named("limit")
+    double limitAmountValue;
+    private AmountValidator amountValidator;
+    private Messages messages;
 
     @Inject
-    public WithdrawOperationServlet(Account bankAccount) {
+    public WithdrawOperationServlet(Account bankAccount, AmountValidator amountValidator, Messages messages) {
         this.bankAccount = bankAccount;
+        this.amountValidator = amountValidator;
+        this.messages = messages;
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -29,37 +36,33 @@ public class WithdrawOperationServlet extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        String withdrawAmount = checkDelimiter(request.getParameter("withdrawAmount"));
-        String username = getUsernameFromCookie(request);
-        boolean isMatch = withdrawAmount.matches("^[0-9]+$|^[0-9]+[.][0-9]{2}$");
-
         try {
+            String withdraw = amountValidator.checkAmountDelimiter(request.getParameter("withdrawAmount"));
+            String username = getUsernameFromCookie(request);
+            boolean isMatch = withdraw.matches("^[0-9]+$|^[0-9]+[.][0-9]{2}$");
+            BigDecimal withdrawAmount = new BigDecimal(withdraw);
+
+            amountValidator.validate(withdrawAmount);
+
             if (isMatch) {
                 boolean isSuccessful = bankAccount.withdraw(withdrawAmount, username);
                 if (!isSuccessful) {
-                    request.setAttribute("operationStatus", "Can not perform operation! Not enough money in your account!");
+                    request.setAttribute("operationStatus", messages.insufficientCurrentBalance());
                 } else {
-                    request.setAttribute("operationStatus", "Amount successfully withdrawn!");
+                    request.setAttribute("operationStatus", messages.successfullyWithdrawnAmount());
                 }
-                request.getRequestDispatcher("/withdraw.jsp").forward(request,response);
+                request.getRequestDispatcher("/withdraw.jsp").forward(request, response);
             } else {
-                request.setAttribute("operationStatus", "Amount not withdrawn!");
-                request.getRequestDispatcher("/withdraw.jsp").forward(request,response);
+                request.setAttribute("operationStatus", messages.withdrawAmountWithTooManyDecimalPlacesError());
+                request.getRequestDispatcher("/withdraw.jsp").forward(request, response);
             }
         } catch (IncorrectAmountValueException e) {
-            request.setAttribute("operationStatus", "Amount not withdrawn!");
-            request.getRequestDispatcher("/withdraw.jsp").forward(request,response);
+            request.setAttribute("operationStatus", messages.withdrawNegativeAmountError());
+            request.getRequestDispatcher("/withdraw.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("operationStatus", messages.withdrawStringAmountError());
+            request.getRequestDispatcher("/withdraw.jsp").forward(request, response);
         }
-    }
-
-    private String checkDelimiter(String amount) {
-        if (amount.contains(",")) {
-            amount = amount.replace(',', '.');
-        }
-        if (amount.contains(".") && amount.indexOf(".") + 3 != amount.length()) {
-            amount = amount.concat("0");
-        }
-        return amount;
     }
 
     private String getUsernameFromCookie(HttpServletRequest request) {

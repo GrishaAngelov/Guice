@@ -3,13 +3,13 @@ package com.clouway.bank;
 import com.google.inject.Singleton;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 /**
  * @author Grisha Angelov <grisha.angelov@clouway.com>
@@ -17,15 +17,14 @@ import java.io.IOException;
 @Singleton
 public class DepositOperationServlet extends HttpServlet {
     private Account bankAccount;
-    private double limitAmountValue;
+    private AmountValidator amountValidator;
+    private Messages messages;
 
     @Inject
-    public DepositOperationServlet(Account bankAccount, @Named("limit")double limitAmountValue) {
+    public DepositOperationServlet(AmountValidator amountValidator, Account bankAccount, Messages messages) {
         this.bankAccount = bankAccount;
-        this.limitAmountValue = limitAmountValue;
-    }
-
-    public void init() throws ServletException {
+        this.amountValidator = amountValidator;
+        this.messages = messages;
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -34,36 +33,27 @@ public class DepositOperationServlet extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
-        String deposit = checkDelimiter(request.getParameter("deposit"));
-        String username = getUsernameFromCookie(request);
         try {
+            String deposit = amountValidator.checkAmountDelimiter(request.getParameter("deposit"));
+            String username = getUsernameFromCookie(request);
 
-            boolean isSuccessful = bankAccount.deposit(deposit, username);
+            BigDecimal depositAmount = new BigDecimal(deposit);
 
-            if (isSuccessful) {
-                request.setAttribute("operationStatus", "Amount successfully added!");
+            amountValidator.validate(depositAmount);
+
+            boolean isDepositSuccessful = bankAccount.deposit(depositAmount, username);
+
+            if (isDepositSuccessful) {
+                request.setAttribute("operationStatus", messages.successfullyAddedAmount());
             } else {
-                request.setAttribute("operationStatus", "Amount not added!");
+                request.setAttribute("operationStatus", messages.addAmountWithTooManyDecimalPlacesError());
             }
         } catch (IncorrectAmountValueException e) {
-            request.setAttribute("operationStatus", "Amount not added!");
+            request.setAttribute("operationStatus", messages.addNegativeAmountError());
+        } catch (NumberFormatException e) {
+            request.setAttribute("operationStatus", messages.addStringAmountError());
         }
-        request.getRequestDispatcher("/deposit.jsp").forward(request,response);
-    }
-
-    public void destroy() {
-
-    }
-
-    private String checkDelimiter(String amount) {
-        final int offset = 3;
-        if (amount.contains(",")) {
-            amount = amount.replace(',', '.');
-        }
-        if (amount.contains(".") && amount.indexOf(".") + offset != amount.length()) {
-            amount = amount.concat("0");
-        }
-        return amount;
+        request.getRequestDispatcher("/deposit.jsp").forward(request, response);
     }
 
     private String getUsernameFromCookie(HttpServletRequest request) {
@@ -77,6 +67,5 @@ public class DepositOperationServlet extends HttpServlet {
             }
         }
         return username;
-
     }
 }

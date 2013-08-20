@@ -14,30 +14,22 @@ import java.io.IOException;
  */
 @Singleton
 public class RegisterServlet extends HttpServlet {
-    private UserRegistry userRegistry;
+    private UserRepository userRepository;
 
     @Inject
-    public RegisterServlet(UserRegistry userRegistry) {
-        this.userRegistry = userRegistry;
-    }
-
-    public void init() throws ServletException {
+    public RegisterServlet(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         String username = request.getParameter("usernameBox");
         String password = request.getParameter("passwordBox");
 
-        if (userRegistry.registerUser(username, password)) {
+        if (userRepository.add(new User(username, password))) {
             request.getSession().setAttribute("username", username);
             response.sendRedirect(request.getContextPath() + "/successfulRegistration.jsp");
         } else {
             response.sendRedirect(request.getContextPath() + "/failedRegistration.jsp");
         }
-    }
-
-
-    public void destroy() {
-
     }
 }

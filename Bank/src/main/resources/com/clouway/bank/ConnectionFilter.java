@@ -1,6 +1,8 @@
 package com.clouway.bank;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import org.apache.commons.dbcp.ConnectionFactory;
 import org.apache.commons.dbcp.DriverManagerConnectionFactory;
 import org.apache.commons.dbcp.PoolableConnection;
@@ -20,14 +22,27 @@ public class ConnectionFilter implements Filter {
     private static PoolableConnectionFactory poolableConnectionFactory;
     private static ThreadLocal<PoolableConnection> connectionThreadLocal;
 
+    private String url;
+    private String user;
+    private String password;
+
+
+    @Inject
+    public ConnectionFilter(@Named("databaseUrl") String url, @Named("user") String user, @Named("password")String password) {
+        this.url = url;
+        this.user = user;
+        this.password = password;
+
+        setUpDatabaseConnection(url, user,password);
+    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        String url = filterConfig.getServletContext().getInitParameter("databaseURL");
-        String user = filterConfig.getServletContext().getInitParameter("databaseUser");
-        String password = filterConfig.getServletContext().getInitParameter("databasePassword");
-
-        setUpDatabaseConnection(url, user, password);
+//        String url = filterConfig.getServletContext().getInitParameter("databaseURL");
+//        String user = filterConfig.getServletContext().getInitParameter("databaseUser");
+//        String password = filterConfig.getServletContext().getInitParameter("databasePassword");
+//
+//        setUpDatabaseConnection(url, user, password);
     }
 
     @Override
@@ -58,17 +73,4 @@ public class ConnectionFilter implements Filter {
         }
         return connectionThreadLocal.get();
     }
-
-//  public static void release(PoolableConnection receivedConnection) {
-////        System.out.println("releasing connection");
-//    try {
-//      if (!receivedConnection.isClosed()) {
-//        receivedConnection.close();
-////                System.out.println("connection released");
-//      }
-//    } catch (SQLException e) {
-//      e.printStackTrace();
-//    }
-//  }
-
 }

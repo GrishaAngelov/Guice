@@ -53,7 +53,7 @@ public class BalanceServletTest {
         context.assertIsSatisfied();
     }
 
-    @Test(expected = NoSuchUserException.class)
+    @Test(expected = UserNotFoundException.class)
     public void getBalanceForUserWithEmptyUsername() throws IOException, ServletException {
 
         context.checking(new Expectations() {{
@@ -63,7 +63,7 @@ public class BalanceServletTest {
             will(returnValue(cookies));
 
             oneOf(bankAccount).getBalance("");
-            will(throwException(new NoSuchUserException()));
+            will(throwException(new UserNotFoundException()));
         }});
         balanceServlet.doGet(request, response);
         context.assertIsSatisfied();

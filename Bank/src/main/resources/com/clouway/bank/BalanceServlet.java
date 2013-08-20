@@ -23,9 +23,6 @@ public class BalanceServlet extends HttpServlet {
         this.bankAccount = bankAccount;
     }
 
-    public void init() {
-    }
-
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         doPost(request, response);
     }
@@ -55,6 +52,5 @@ public class BalanceServlet extends HttpServlet {
             }
         }
         return username;
-
     }
 }

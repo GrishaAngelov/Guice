@@ -14,7 +14,7 @@ import javax.servlet.http.HttpSession;
  */
 public class RegisterServletTest {
     private RegisterServlet registerServlet;
-    private UserRegistry userRegistry;
+    private UserRepository userRepository;
     private Mockery context;
     private HttpServletRequest request;
     private HttpServletResponse response;
@@ -24,8 +24,8 @@ public class RegisterServletTest {
         context = new Mockery();
         request = context.mock(HttpServletRequest.class);
         response = context.mock(HttpServletResponse.class);
-        userRegistry = context.mock(UserRegistry.class);
-        registerServlet = new RegisterServlet(userRegistry);
+        userRepository = context.mock(UserRepository.class);
+        registerServlet = new RegisterServlet(userRepository);
     }
 
     @Test
@@ -39,7 +39,7 @@ public class RegisterServletTest {
             oneOf(request).getParameter("passwordBox");
             will(returnValue("123456"));
 
-            oneOf(userRegistry).registerUser("John", "123456");
+            oneOf(userRepository).add(new User("John", "123456"));
             will(returnValue(true));
 
             oneOf(request).getSession();
@@ -64,7 +64,7 @@ public class RegisterServletTest {
             oneOf(request).getParameter("passwordBox");
             will(returnValue("123456"));
 
-            oneOf(userRegistry).registerUser("", "123456");
+            oneOf(userRepository).add(new User("", "123456"));
             will(returnValue(false));
 
             oneOf(request).getContextPath();
@@ -86,7 +86,7 @@ public class RegisterServletTest {
             oneOf(request).getParameter("passwordBox");
             will(returnValue(""));
 
-            oneOf(userRegistry).registerUser("John", "");
+            oneOf(userRepository).add(new User("John", ""));
             will(returnValue(false));
 
             oneOf(request).getContextPath();

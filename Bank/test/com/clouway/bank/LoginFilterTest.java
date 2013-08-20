@@ -10,11 +10,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Calendar;
 
 /**
-* @author Grisha Angelov <grisha.angelov@clouway.com>
-*/
+ * @author Grisha Angelov <grisha.angelov@clouway.com>
+ */
 public class LoginFilterTest {
     private LoginFilter loginFilter;
     private Mockery context;
@@ -37,9 +36,9 @@ public class LoginFilterTest {
 
     @Test
     public void checkUserIsLoggedInWithNotExpiredTime() throws Exception {
+        final Cookie[] cookies = {new Cookie("expireTimeCookie", "pesho&2014-07-25 13:21:55"), new Cookie("loginGreet", "Hello, pesho")};
 
         context.checking(new Expectations() {{
-            Cookie[] cookies = {new Cookie("expireTimeCookie", "pesho&2014-07-25 13:21:55")};
 
             oneOf(request).getCookies();
             will(returnValue(cookies));
@@ -53,6 +52,11 @@ public class LoginFilterTest {
             oneOf(request).getCookies();
             will(returnValue(cookies));
 
+            oneOf(request).getCookies();
+            will(returnValue(cookies));
+
+            oneOf(request).setAttribute("greetCookie", cookies[1]);
+            oneOf(request).setAttribute("greet","Hello, pesho<br/><a style='color:white;' href='logout.jsp'>logout</a>");
             oneOf(filterChain).doFilter(request, response);
         }});
 
@@ -93,6 +97,11 @@ public class LoginFilterTest {
         context.checking(new Expectations() {{
             oneOf(request).getCookies();
             will(returnValue(null));
+
+            oneOf(request).getAttribute("greet");
+            will(returnValue(null));
+
+            oneOf(request).setAttribute("greet","");
             oneOf(request).getRequestDispatcher("/login.jsp");
         }});
 

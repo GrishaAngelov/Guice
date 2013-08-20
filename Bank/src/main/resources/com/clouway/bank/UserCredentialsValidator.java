@@ -5,11 +5,7 @@ package com.clouway.bank;
  */
 public class UserCredentialsValidator implements CredentialsValidator {
 
-  public boolean isValid(String username, String password) {
-    boolean isValid = false;
-    if (!username.equals("") && !password.equals("")) {
-      isValid = true;
-    }
-    return isValid;
+  public boolean isValid(User user) {
+    return !user.getUsername().equals("") && !user.getPassword().equals("");
   }
 }

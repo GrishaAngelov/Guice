@@ -4,15 +4,6 @@
   <head>
     <title>Withdraw</title>
     <link rel="stylesheet" type="text/css" href="css/withdraw.css" >
-      <%--<script type="text/javascript">--%>
-          <%--function validateWithdraw(){--%>
-              <%--var depositValue = document.forms[0]["withdraw"].value;--%>
-              <%--var isValid = /^[0-9]+$|^[0-9]+[.][0-9]{2}$/i.test(depositValue);--%>
-              <%--if(isValid){--%>
-                  <%--document.forms[0].submit();--%>
-              <%--}--%>
-          <%--}--%>
-      <%--</script>--%>
 
   </head>
   <body>

@@ -8,6 +8,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.CookieStore;
 import java.sql.Timestamp;
 import java.util.Calendar;
 
@@ -36,10 +37,32 @@ public class LoginFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
         if (request.getCookies() == null) {
+            if (request.getAttribute("greet") == null) {
+                request.setAttribute("greet", "");
+            }
             request.getRequestDispatcher("/login.jsp").forward(request, response);
+
         } else {
             String username = String.valueOf(request.getSession().getAttribute("username"));
             if (!isUserSessionExpired(request)) {
+
+                Cookie[] cookies = request.getCookies();
+                String cookieValue = "";
+
+                Cookie greetCookie = null;
+                if (cookies != null) {
+                    for (int i = 0; i < cookies.length; i++) {
+                        if (cookies[i].getName().equals("loginGreet")) {
+                            greetCookie = cookies[i];
+                            break;
+                        }
+                    }
+                    cookieValue = greetCookie.getValue();
+                    cookieValue += "<br/><a style='color:white;' href='logout.jsp'>logout</a>";
+                }
+                request.setAttribute("greetCookie", greetCookie);
+                request.setAttribute("greet", cookieValue);
+
                 filterChain.doFilter(request, response);
             } else {
                 sessionExpireTime.deleteExpireTimeFor(username);

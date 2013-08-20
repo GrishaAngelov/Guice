@@ -3,6 +3,5 @@ package com.clouway.bank;
 /**
  * @author Grisha Angelov <grisha.angelov@clouway.com>
  */
-public interface CredentialsValidator {
-    boolean isValid(User user);
+public class UserNotFoundException extends RuntimeException {
 }

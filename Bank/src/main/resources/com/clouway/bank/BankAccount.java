@@ -19,14 +19,13 @@ public class BankAccount implements Account {
     private Provider<PoolableConnection> connectionProvider;
 
     @Inject
-    public BankAccount(@Named("limit") double limitAmountValue, Provider<PoolableConnection> connectionProvider) {
+    public BankAccount(@Named("limit") Double limitAmountValue, Provider<PoolableConnection> connectionProvider) {
         LIMIT_AMOUNT_VALUE = limitAmountValue;
         this.connectionProvider = connectionProvider;
     }
 
     @Override
-    public boolean deposit(String depositAmount, String username) {
-        checkAmountValue(depositAmount);
+    public boolean deposit(BigDecimal depositAmount, String username) {
         PoolableConnection poolableConnection = null;
         boolean isSuccessful = false;
         try {
@@ -35,47 +34,38 @@ public class BankAccount implements Account {
             PreparedStatement statement = poolableConnection.prepareStatement("update bank_account set amount = amount + ? where username = ?");
 
             if (shouldDepositAmount(depositAmount, username)) {
-                BigDecimal amountValue = new BigDecimal(depositAmount);
-                statement.setString(1, amountValue.toString());
+                statement.setString(1, depositAmount.toString());
                 statement.setString(2, username);
                 statement.execute();
                 isSuccessful = true;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } catch (NumberFormatException e) {
+            throw new IncorrectAmountValueException();
         } finally {
-            try {
-                poolableConnection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            closeConnection(poolableConnection);
         }
         return isSuccessful;
     }
 
     @Override
-    public boolean withdraw(String withdrawAmount, String username) {
-        checkAmountValue(withdrawAmount);
+    public boolean withdraw(BigDecimal withdrawAmount, String username) {
         PoolableConnection poolableConnection = null;
         boolean isSuccessful = false;
         try {
             poolableConnection = connectionProvider.get();
             Statement statement = poolableConnection.createStatement();
-            BigDecimal amountValue = new BigDecimal(withdrawAmount);
             BigDecimal oldAmount = getCurrentAmount(username);
             checkIsUserExist(username);
-            if ((amountValue.doubleValue() <= oldAmount.doubleValue()) && (amountValue.doubleValue() > 0)) {
-                statement.execute("UPDATE bank_account SET amount = amount-" + amountValue + " WHERE username='" + username + "'");
+            if ((withdrawAmount.doubleValue() <= oldAmount.doubleValue()) && (withdrawAmount.doubleValue() > 0)) {
+                statement.execute("UPDATE bank_account SET amount = amount-" + withdrawAmount + " WHERE username='" + username + "'");
                 isSuccessful = true;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            try {
-                poolableConnection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            closeConnection(poolableConnection);
         }
         return isSuccessful;
     }
@@ -93,33 +83,14 @@ public class BankAccount implements Account {
                 amount = resultSet.getString("amount");
             }
             if (!resultSet.first()) {
-                throw new NoSuchUserException();
+                throw new UserNotFoundException();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            try {
-                poolableConnection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            closeConnection(poolableConnection);
         }
         return new BigDecimal(amount);
-    }
-
-
-    private void checkAmountValue(String amount) {
-        if (amount.equals("")) {
-            throw new IncorrectAmountValueException();
-        } else {
-            try {
-                if (Double.parseDouble(amount) < 0 || amount.equals("0") || Double.parseDouble(amount) > LIMIT_AMOUNT_VALUE) {
-                    throw new IncorrectAmountValueException();
-                }
-            } catch (NumberFormatException e) {
-                throw new IncorrectAmountValueException();
-            }
-        }
     }
 
     private BigDecimal getCurrentAmount(String username) throws SQLException {
@@ -132,7 +103,7 @@ public class BankAccount implements Account {
                 oldAmount = new BigDecimal(rs.getString("amount"));
             }
         } finally {
-            connection.close();
+            closeConnection(connection);
             statement.close();
         }
         return oldAmount;
@@ -146,26 +117,34 @@ public class BankAccount implements Account {
             statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("select amount from bank_account where username=\"" + username + "\"");
             if (!resultSet.first() || username.equals("")) {
-                throw new NoSuchUserException();
+                throw new UserNotFoundException();
             }
         } finally {
+            closeConnection(connection);
             statement.close();
-            connection.close();
         }
     }
 
-    private boolean shouldDepositAmount(String depositAmount, String username) throws SQLException {
+    private boolean shouldDepositAmount(BigDecimal newAmount, String username) throws SQLException {
         boolean shouldDeposit = false;
-        boolean isDepositAmountCorrect = depositAmount.matches("^[0-9]+$|^[0-9]+[.][0-9]{2}$");
+        String amountFormatRegEx = "^[0-9]+$|^[0-9]+[.][0-9]{2}$";
+        boolean isDepositAmountCorrect = newAmount.toString().matches(amountFormatRegEx);
         if (isDepositAmountCorrect) {
             PoolableConnection connection = connectionProvider.get();
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("select amount from bank_account where username='" + username + "'");
             resultSet.next();
-            BigDecimal newAmount = new BigDecimal(depositAmount);
             BigDecimal oldAmount = new BigDecimal(resultSet.getString("amount"));
             shouldDeposit = newAmount.add(oldAmount).doubleValue() <= LIMIT_AMOUNT_VALUE;
         }
         return shouldDeposit;
+    }
+
+    private void closeConnection(PoolableConnection connection) {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

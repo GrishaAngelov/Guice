@@ -44,12 +44,12 @@ public class LogoutServlet extends HttpServlet {
         }
     }
 
-    private String getUsernameFromCookie(HttpServletRequest request){
-        String username="";
+    private String getUsernameFromCookie(HttpServletRequest request) {
+        String username = "";
         Cookie[] cookies = request.getCookies();
-        if(cookies!=null){
-            for(Cookie c:cookies){
-                if(c.getName().equals("expireTimeCookie")){
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (c.getName().equals("expireTimeCookie")) {
                     username = c.getValue().split("&")[0];
                 }
             }

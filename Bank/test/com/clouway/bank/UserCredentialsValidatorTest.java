@@ -19,21 +19,21 @@ public class UserCredentialsValidatorTest {
 
     @Test
     public void validateCredentialsHappyPath() throws Exception {
-        assertTrue(userCredentialsValidator.isValid("John", "123456"));
+        assertTrue(userCredentialsValidator.isValid(new User("John", "123456")));
     }
 
     @Test
     public void validateEmptyUsername() throws Exception {
-        assertFalse(userCredentialsValidator.isValid("", "123456"));
+        assertFalse(userCredentialsValidator.isValid(new User("", "123456")));
     }
 
     @Test
     public void validateEmptyPassword() throws Exception {
-        assertFalse(userCredentialsValidator.isValid("John", ""));
+        assertFalse(userCredentialsValidator.isValid(new User("John", "")));
     }
 
     @Test
     public void validateEmptyCredentials(){
-        assertFalse(userCredentialsValidator.isValid("", ""));
+        assertFalse(userCredentialsValidator.isValid(new User("", "")));
     }
 }

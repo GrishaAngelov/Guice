@@ -3,16 +3,16 @@
 <html>
 <head>
     <title>Welcome</title>
-    <link rel="stylesheet" type="text/css" href="css/index.css" >
+    <link rel="stylesheet" type="text/css" href="css/index.css">
 
     <script type="text/javascript">
-        function checkToRemoveLinks(){
-            if(document.getElementById("greet").innerHTML != ""){
-                document.getElementById("loginLink").style.display="none";
-                document.getElementById("regLink").style.display="none";
-                document.getElementById("menuList").style.width="30%";
-                document.getElementById("menuList").style.marginLeft="35%";
-                document.getElementsByTagName("h3")[0].style.marginTop="-4%";
+        function checkToRemoveLinks() {
+            if (<%=request.getAttribute("greetCookie")!=null%>) {
+                document.getElementById("loginLink").style.display = "none";
+                document.getElementById("regLink").style.display = "none";
+                document.getElementById("menuList").style.width = "30%";
+                document.getElementById("menuList").style.marginLeft = "35%";
+                document.getElementsByTagName("h3")[0].style.marginTop = "-4%";
             }
         }
     </script>
@@ -30,26 +30,12 @@
     <a id="loginLink" href="login.jsp">login</a>
 </div>
 
-<%
-    Cookie[] cookies = request.getCookies();
-    String cookieValue = "";
+<div id="greet"><%=request.getAttribute("greet")%>
+</div>
+<br/>
 
-    if(cookies!=null){
-        Cookie greetCookie=null;
-        for (int i = 0; i < cookies.length; i++) {
-            if(cookies[i].getName().equals("loginGreet")){
-                greetCookie = cookies[i];
-                break;
-            }
-        }
-        cookieValue = greetCookie.getValue();
-        cookieValue+="<br/><a style='color:white;' href='logout.jsp'>logout</a>";
-    }
-%>
-<div id="greet"><%=cookieValue%></div><br/>
-
-
-<h3>Logged Users: <%=LoggedUsersCounter.getCount()%></h3>
+<h3>Logged Users: <%=LoggedUsersCounter.getCount()%>
+</h3>
 
 </body>
 </html>

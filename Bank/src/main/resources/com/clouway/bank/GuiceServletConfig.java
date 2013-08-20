@@ -17,11 +17,16 @@ public class GuiceServletConfig extends GuiceServletContextListener {
             @Override
             protected void configureServlets() {
                 bind(CredentialsValidator.class).to(UserCredentialsValidator.class);
-                bind(UserRegistry.class).to(BankUserRegistry.class);
+                bind(UserRepository.class).to(BankUserRepository.class);
                 bind(Account.class).to(BankAccount.class);
                 bind(ExpireTime.class).to(SessionExpireTime.class);
                 bind(Double.class).annotatedWith(Names.named("limit")).toInstance(99999999.0);
                 bind(PoolableConnection.class).toProvider(ConnectionProvider.class);
+                bind(AmountValidator.class).to(AmountValueValidator.class);
+
+                bind(String.class).annotatedWith(Names.named("user")).toInstance("root");
+                bind(String.class).annotatedWith(Names.named("databaseUrl")).toInstance("jdbc:mysql://localhost:3306/bank");
+                bind(String.class).annotatedWith(Names.named("password")).toInstance("123456");
 
                 serve("/LoginServlet").with(LoginServlet.class);
                 serve("/IndexServlet").with(IndexServlet.class);
@@ -38,6 +43,8 @@ public class GuiceServletConfig extends GuiceServletContextListener {
                 filter("/BalanceServlet").through(LoginFilter.class);
                 filter("/DepositServlet").through(LoginFilter.class);
                 filter("/WithdrawServlet").through(LoginFilter.class);
+
+                filter("/index.jsp").through(LoginFilter.class);
 
                 filter("/BalanceServlet").through(ConnectionFilter.class);
                 filter("/DepositServlet").through(ConnectionFilter.class);

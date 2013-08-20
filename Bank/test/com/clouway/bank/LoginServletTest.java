@@ -18,7 +18,7 @@ import java.util.HashMap;
 public class LoginServletTest {
     private LoginServlet loginServlet;
     private CredentialsValidator credentialsValidator;
-    private UserRegistry userRegistry;
+    private UserRepository userRepository;
     private ExpireTime sessionExpireTime;
     private Mockery context;
     private HttpServletRequest request;
@@ -31,14 +31,15 @@ public class LoginServletTest {
         response = context.mock(HttpServletResponse.class);
         credentialsValidator = context.mock(CredentialsValidator.class);
         sessionExpireTime = context.mock(ExpireTime.class);
-        userRegistry = context.mock(UserRegistry.class);
-        loginServlet = new LoginServlet(credentialsValidator,userRegistry, sessionExpireTime);
+        userRepository = context.mock(UserRepository.class);
+        loginServlet = new LoginServlet(credentialsValidator, userRepository, sessionExpireTime);
     }
 
     @Test
     public void happyPath() throws Exception {
         final HttpSession session = context.mock(HttpSession.class);
         final Cookie cookie = new UserCookie("asd","123");
+        final User user = new User("John", "123456");
 
         context.checking(new Expectations() {{
 
@@ -48,10 +49,10 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{"123456"});
             }}));
 
-            oneOf(credentialsValidator).isValid("John", "123456");
+            oneOf(credentialsValidator).isValid(user);
             will(returnValue(true));
 
-            oneOf(userRegistry).isUserRegistered("John", "123456");
+            oneOf(userRepository).hasUser(new User("John", "123456"));
             will(returnValue(true));
 
             oneOf(sessionExpireTime).createExpireTimeFor("John");
@@ -87,7 +88,7 @@ public class LoginServletTest {
 
     @Test
     public void tryLoginWithNonexistentCredentials() throws Exception {
-
+        final User user = new User("Peter", "asd");
         context.checking(new Expectations() {{
 
             oneOf(request).getParameterMap();
@@ -97,10 +98,10 @@ public class LoginServletTest {
             }}));
 
 
-            oneOf(credentialsValidator).isValid("Peter", "asd");
+            oneOf(credentialsValidator).isValid(user);
             will(returnValue(true));
 
-            oneOf(userRegistry).isUserRegistered("Peter", "asd");
+            oneOf(userRepository).hasUser(user);
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Incorrect username or/and password");
@@ -122,7 +123,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{"123456"});
             }}));
 
-            oneOf(credentialsValidator).isValid("", "123456");
+            oneOf(credentialsValidator).isValid(new User("", "123456"));
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");
@@ -144,7 +145,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{""});
             }}));
 
-            oneOf(credentialsValidator).isValid("John", "");
+            oneOf(credentialsValidator).isValid(new User("John", ""));
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");
@@ -166,7 +167,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{""});
             }}));
 
-            oneOf(credentialsValidator).isValid("", "");
+            oneOf(credentialsValidator).isValid(new User("", ""));
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");

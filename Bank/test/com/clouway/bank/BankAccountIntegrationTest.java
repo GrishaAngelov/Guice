@@ -26,7 +26,7 @@ public class BankAccountIntegrationTest {
 
     @Before
     public void setUp() throws SQLException {
-        account = new BankAccount(99999999,new ConnectionProvider());
+        account = new BankAccount(99999999.0,new ConnectionProvider());
         connection = connectionRule.get();
         statement = connection.createStatement();
         statement.execute("create table if not exists bank_account (username varchar(20) not null primary key, amount decimal (10,2))");
@@ -46,19 +46,19 @@ public class BankAccountIntegrationTest {
         assertEquals(initAmount, balance);
     }
 
-    @Test(expected = NoSuchUserException.class)
+    @Test(expected = UserNotFoundException.class)
     public void getBalanceForNotExistingUser() {
         account.getBalance("pesho");
     }
 
-    @Test(expected = NoSuchUserException.class)
+    @Test(expected = UserNotFoundException.class)
     public void getBalanceForEmptyUser() {
         account.getBalance("");
     }
 
     @Test
     public void depositAmountHappyPath() throws Exception {
-        boolean isAmountDeposited = account.deposit("20", "john");
+        boolean isAmountDeposited = account.deposit(new BigDecimal("20"), "john");
 
         assertTrue(isAmountDeposited);
         assertEquals(new BigDecimal("70.00"), account.getBalance("john"));
@@ -66,73 +66,58 @@ public class BankAccountIntegrationTest {
 
     @Test
     public void depositAmountWithDotDelimiter(){
-        boolean isAmountDeposited = account.deposit("20.00","john");
+        boolean isAmountDeposited = account.deposit(new BigDecimal("20.00"),"john");
 
         assertTrue(isAmountDeposited);
         assertEquals(new BigDecimal("70.00"), account.getBalance("john"));
     }
 
-    @Test(expected = IncorrectAmountValueException.class)
+    @Test(expected = NumberFormatException.class)
     public void depositAmountWithCommaDelimiter(){
-       account.deposit("20,00","john");
+       account.deposit(new BigDecimal("20,00"),"john");
     }
 
-    @Test(expected = IncorrectAmountValueException.class)
+    @Test(expected = NumberFormatException.class)
     public void depositEmptyAmount() throws Exception {
-        account.deposit("", "john");
+        account.deposit(new BigDecimal(""), "john");
     }
 
-    @Test(expected = IncorrectAmountValueException.class)
-    public void depositNegativeAmount() {
-        account.deposit("-20", "john");
-    }
-
-    @Test(expected = IncorrectAmountValueException.class)
-    public void depositZeroAmount() {
-        account.deposit("0", "john");
-    }
-
-    @Test(expected = IncorrectAmountValueException.class)
-    public void depositTooBigAmount() {
-        account.deposit("9999999999999999999999", "john");
-    }
-
-    @Test(expected = IncorrectAmountValueException.class)
+    @Test(expected = NumberFormatException.class)
     public void depositStringAmount() {
-        account.deposit("asd", "john");
+        account.deposit(new BigDecimal("asd"), "john");
     }
 
-    @Test(expected = NoSuchUserException.class)
+    @Test(expected = UserNotFoundException.class)
     public void depositAmountToEmptyUser() throws Exception {
-        account.deposit("20", "");
+        account.deposit(new BigDecimal("20"), "");
     }
 
-    @Test(expected = NoSuchUserException.class)
+    @Test(expected = UserNotFoundException.class)
     public void depositAmountToNonexistentUser() throws Exception {
-        account.deposit("20", "pesho");
+        account.deposit(new BigDecimal("20"), "pesho");
     }
 
-    @Test(expected = IncorrectAmountValueException.class)
+    @Test(expected = NumberFormatException.class)
     public void depositEmptyAmountToEmptyUser() {
-        account.deposit("", "");
+        account.deposit(new BigDecimal(""), "");
     }
 
     @Test
     public void depositMaxLimit() {
-        account.deposit("99999949", "john");
+        account.deposit(new BigDecimal("99999949"), "john");
         assertEquals("99999999.00",account.getBalance("john").toString());
     }
 
     @Test
     public void depositMoreThanMaxLimit(){
-        account.deposit("99999949", "john");
-        boolean isSuccessful = account.deposit("1","john");
+        account.deposit(new BigDecimal("99999949"), "john");
+        boolean isSuccessful = account.deposit(new BigDecimal("1"),"john");
         assertFalse(isSuccessful);
     }
 
     @Test
     public void withdrawAmountHappyPath() {
-        boolean isSuccessful = account.withdraw("10", "john");
+        boolean isSuccessful = account.withdraw(new BigDecimal("10"), "john");
 
         assertTrue(isSuccessful);
         assertEquals(new BigDecimal("40.00"), account.getBalance("john"));
@@ -140,48 +125,38 @@ public class BankAccountIntegrationTest {
 
     @Test
     public void withdrawAll() {
-        boolean isSuccessful = account.withdraw("50", "john");
+        boolean isSuccessful = account.withdraw(new BigDecimal("50"), "john");
 
         assertTrue(isSuccessful);
         assertEquals(new BigDecimal("0.00"), account.getBalance("john"));
     }
 
-    @Test(expected = IncorrectAmountValueException.class)
-    public void withdrawZeroAmount() {
-        account.withdraw("0", "John");
-    }
-
-    @Test(expected = IncorrectAmountValueException.class)
-    public void withdrawNegativeAmount() {
-        account.withdraw("-10", "john");
-    }
-
     @Test
     public void withdrawMoreThanAvailable() {
-        boolean isSuccessful = account.withdraw("100", "john");
+        boolean isSuccessful = account.withdraw(new BigDecimal("100"), "john");
 
         assertFalse(isSuccessful);
         assertEquals(initAmount, account.getBalance("john"));
     }
 
-    @Test(expected = IncorrectAmountValueException.class)
+    @Test(expected = NumberFormatException.class)
     public void withdrawStringAmount() {
-        account.withdraw("asd", "john");
+        account.withdraw(new BigDecimal("asd"), "john");
     }
 
-    @Test(expected = NoSuchUserException.class)
+    @Test(expected = UserNotFoundException.class)
     public void withdrawAmountFromNonexistentUser() {
-        account.withdraw("10", "pesho");
+        account.withdraw(new BigDecimal("10"), "pesho");
     }
 
-    @Test(expected = NoSuchUserException.class)
+    @Test(expected = UserNotFoundException.class)
     public void withdrawAmountFromEmptyUser() {
-        account.withdraw("10", "");
+        account.withdraw(new BigDecimal("10"), "");
     }
 
-    @Test(expected = IncorrectAmountValueException.class)
+    @Test(expected = NumberFormatException.class)
     public void withdrawEmptyAmountFromEmptyUser() {
-        account.withdraw("", "");
+        account.withdraw(new BigDecimal(""), "");
     }
 
 }

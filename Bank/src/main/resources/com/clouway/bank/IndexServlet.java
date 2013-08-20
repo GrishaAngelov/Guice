@@ -16,6 +16,9 @@ import java.io.IOException;
 public class IndexServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if (request.getAttribute("greet") == null) {
+            request.setAttribute("greet", "");
+        }
         request.getRequestDispatcher("/index.jsp").forward(request, response);
     }
 }

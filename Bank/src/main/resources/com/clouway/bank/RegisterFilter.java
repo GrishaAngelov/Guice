@@ -1,5 +1,6 @@
 package com.clouway.bank;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import javax.servlet.*;
@@ -11,6 +12,12 @@ import java.io.IOException;
 
 @Singleton
 public class RegisterFilter implements Filter {
+    private CredentialsValidator credentialsValidator;
+
+    @Inject
+    public RegisterFilter(CredentialsValidator credentialsValidator) {
+        this.credentialsValidator = credentialsValidator;
+    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -21,7 +28,7 @@ public class RegisterFilter implements Filter {
         String username = request.getParameter("usernameBox");
         String password = request.getParameter("passwordBox");
 
-        if (new UserCredentialsValidator().isValid(username, password)) {
+        if (credentialsValidator.isValid(new User(username, password))) {
             chain.doFilter(request, response);
         } else {
             request.setAttribute("message", "Please enter username and/or password");
