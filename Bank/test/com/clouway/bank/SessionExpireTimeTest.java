@@ -26,7 +26,8 @@ public class SessionExpireTimeTest {
     @Before
     public void setUp() throws Exception {
         ConnectionProvider connectionProvider = rule.get();
-        expireTime = new SessionExpireTime(connectionProvider);
+        SQLActionPerformer sqlActionPerformer = new SQLActionPerformer();
+        expireTime = new SessionExpireTime(connectionProvider,sqlActionPerformer);
         connection = connectionProvider.get();
         statement = connection.createStatement();
 

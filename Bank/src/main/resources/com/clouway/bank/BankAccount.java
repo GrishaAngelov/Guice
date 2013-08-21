@@ -17,112 +17,107 @@ import java.sql.Statement;
 public class BankAccount implements Account {
     private static double LIMIT_AMOUNT_VALUE = 0;
     private Provider<PoolableConnection> connectionProvider;
+    private SQLActionPerformer sqlActionPerformer;
 
     @Inject
-    public BankAccount(@Named("limit") Double limitAmountValue, Provider<PoolableConnection> connectionProvider) {
+    public BankAccount(@Named("limit") Double limitAmountValue, Provider<PoolableConnection> connectionProvider, SQLActionPerformer sqlActionPerformer) {
         LIMIT_AMOUNT_VALUE = limitAmountValue;
         this.connectionProvider = connectionProvider;
+        this.sqlActionPerformer = sqlActionPerformer;
     }
 
     @Override
-    public boolean deposit(BigDecimal depositAmount, String username) {
-        PoolableConnection poolableConnection = null;
-        boolean isSuccessful = false;
-        try {
-            poolableConnection = connectionProvider.get();
-            checkIsUserExist(username);
-            PreparedStatement statement = poolableConnection.prepareStatement("update bank_account set amount = amount + ? where username = ?");
+    public boolean deposit(final BigDecimal depositAmount, final String username) {
+        final PoolableConnection poolableConnection = connectionProvider.get();
+        return (Boolean) sqlActionPerformer.executeSQLAction(new SQLAction<Boolean>(poolableConnection) {
+            @Override
+            public Boolean execute() throws SQLException {
+                boolean isSuccessful = false;
+                checkIsUserExist(username);
+                PreparedStatement statement = poolableConnection.prepareStatement("update bank_account set amount = amount + ? where username = ?");
 
-            if (shouldDepositAmount(depositAmount, username)) {
-                statement.setString(1, depositAmount.toString());
-                statement.setString(2, username);
-                statement.execute();
-                isSuccessful = true;
+                if (shouldDepositAmount(depositAmount, username)) {
+                    statement.setString(1, depositAmount.toString());
+                    statement.setString(2, username);
+                    statement.execute();
+                    isSuccessful = true;
+                }
+                return isSuccessful;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (NumberFormatException e) {
-            throw new IncorrectAmountValueException();
-        } finally {
-            closeConnection(poolableConnection);
-        }
-        return isSuccessful;
+        });
     }
 
     @Override
-    public boolean withdraw(BigDecimal withdrawAmount, String username) {
-        PoolableConnection poolableConnection = null;
-        boolean isSuccessful = false;
-        try {
-            poolableConnection = connectionProvider.get();
-            Statement statement = poolableConnection.createStatement();
-            BigDecimal oldAmount = getCurrentAmount(username);
-            checkIsUserExist(username);
-            if ((withdrawAmount.doubleValue() <= oldAmount.doubleValue()) && (withdrawAmount.doubleValue() > 0)) {
-                statement.execute("UPDATE bank_account SET amount = amount-" + withdrawAmount + " WHERE username='" + username + "'");
-                isSuccessful = true;
+    public boolean withdraw(final BigDecimal withdrawAmount, final String username) {
+        final PoolableConnection connection = ConnectionFilter.get();
+        return (Boolean) sqlActionPerformer.executeSQLAction(new SQLAction<Boolean>(connection) {
+            @Override
+            public Boolean execute() throws SQLException {
+                boolean isSuccessful = false;
+                Statement statement = connection.createStatement();
+                BigDecimal oldAmount = getCurrentAmount(username);
+                checkIsUserExist(username);
+                if ((withdrawAmount.doubleValue() <= oldAmount.doubleValue()) && (withdrawAmount.doubleValue() > 0)) {
+                    statement.execute("UPDATE bank_account SET amount = amount-" + withdrawAmount + " WHERE username='" + username + "'");
+                    isSuccessful = true;
+                }
+                return isSuccessful;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeConnection(poolableConnection);
-        }
-        return isSuccessful;
+        });
     }
 
 
     @Override
-    public BigDecimal getBalance(String username) {
-        PoolableConnection poolableConnection = null;
-        String amount = "0";
-        try {
-            poolableConnection = connectionProvider.get();
-            Statement statement = poolableConnection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT amount FROM bank_account WHERE username='" + username + "'");
-            while (resultSet.next()) {
-                amount = resultSet.getString("amount");
+    public BigDecimal getBalance(final String username) {
+        final PoolableConnection connection = ConnectionFilter.get();
+        final String[] amount = {"0"};
+        return (BigDecimal) sqlActionPerformer.executeSQLAction(new SQLAction<BigDecimal>(connection) {
+            @Override
+            public BigDecimal execute() throws SQLException {
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery("SELECT amount FROM bank_account WHERE username='" + username + "'");
+                while (resultSet.next()) {
+                    amount[0] = resultSet.getString("amount");
+                }
+                if (!resultSet.first()) {
+                    throw new UserNotFoundException();
+                }
+                return new BigDecimal(amount[0]);
             }
-            if (!resultSet.first()) {
-                throw new UserNotFoundException();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeConnection(poolableConnection);
-        }
-        return new BigDecimal(amount);
+        });
     }
 
-    private BigDecimal getCurrentAmount(String username) throws SQLException {
-        PoolableConnection connection = connectionProvider.get();
-        Statement statement = connection.createStatement();
-        BigDecimal oldAmount = null;
-        try {
-            ResultSet rs = statement.executeQuery("SELECT amount FROM bank_account WHERE username='" + username + "'");
-            while (rs.next()) {
-                oldAmount = new BigDecimal(rs.getString("amount"));
+    private BigDecimal getCurrentAmount(final String username) throws SQLException {
+        final PoolableConnection connection = ConnectionFilter.get();
+        return (BigDecimal) sqlActionPerformer.executeSQLAction(new SQLAction<BigDecimal>(connection) {
+            @Override
+            public BigDecimal execute() throws SQLException {
+                Statement statement = connection.createStatement();
+                BigDecimal currentAmount = null;
+                ResultSet rs = statement.executeQuery("SELECT amount FROM bank_account WHERE username='" + username + "'");
+                while (rs.next()) {
+                    currentAmount = new BigDecimal(rs.getString("amount"));
+                }
+                return currentAmount;
             }
-        } finally {
-            closeConnection(connection);
-            statement.close();
-        }
-        return oldAmount;
+        });
     }
 
-    private void checkIsUserExist(String username) throws SQLException {
-        PoolableConnection connection = null;
-        Statement statement = null;
-        try {
-            connection = connectionProvider.get();
-            statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select amount from bank_account where username=\"" + username + "\"");
-            if (!resultSet.first() || username.equals("")) {
-                throw new UserNotFoundException();
+    private void checkIsUserExist(final String username) throws SQLException {
+        final PoolableConnection connection = ConnectionFilter.get();
+        final Statement[] statement = {null};
+
+        sqlActionPerformer.executeSQLAction(new SQLAction<Void>(connection) {
+            @Override
+            public Void execute() throws SQLException {
+                statement[0] = connection.createStatement();
+                ResultSet resultSet = statement[0].executeQuery("select amount from bank_account where username=\"" + username + "\"");
+                if (!resultSet.first() || username.equals("")) {
+                    throw new UserNotFoundException();
+                }
+                return null;
             }
-        } finally {
-            closeConnection(connection);
-            statement.close();
-        }
+        });
     }
 
     private boolean shouldDepositAmount(BigDecimal newAmount, String username) throws SQLException {
@@ -138,13 +133,5 @@ public class BankAccount implements Account {
             shouldDeposit = newAmount.add(oldAmount).doubleValue() <= LIMIT_AMOUNT_VALUE;
         }
         return shouldDeposit;
-    }
-
-    private void closeConnection(PoolableConnection connection) {
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }

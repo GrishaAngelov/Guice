@@ -26,7 +26,7 @@ public class BankAccountIntegrationTest {
 
     @Before
     public void setUp() throws SQLException {
-        account = new BankAccount(99999999.0,new ConnectionProvider());
+        account = new BankAccount(99999999.0,new ConnectionProvider(),new SQLActionPerformer());
         connection = connectionRule.get();
         statement = connection.createStatement();
         statement.execute("create table if not exists bank_account (username varchar(20) not null primary key, amount decimal (10,2))");

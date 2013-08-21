@@ -29,7 +29,7 @@ public class BankUserRepositoryTest {
 
     @Before
     public void setUp() throws Exception {
-        bankUserRegistry = new BankUserRepository();
+        bankUserRegistry = new BankUserRepository(new SQLActionPerformer());
         connection = connectionRule.get();
         statement = connection.createStatement();
         statement.execute("create table if not exists users(username varchar(20) not null primary key, password varchar (10))");
