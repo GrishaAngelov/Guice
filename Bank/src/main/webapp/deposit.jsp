@@ -4,17 +4,7 @@
   <head>
     <title>Deposit</title>
     <link rel="stylesheet" type="text/css" href="css/deposit.css" >
-    <%--<script type="text/javascript">--%>
-        <%--function validateDeposit(){--%>
-            <%--var depositValue = document.forms[0]["deposit"].value;--%>
-            <%--if(depositValue!=""){--%>
-                <%--var isValid = /^[0-9]+$|^[0-9]+[.][0-9]{2}$/i.test(depositValue);--%>
-                <%--if(isValid){--%>
-                    <%--document.forms[0].submit();--%>
-                <%--}--%>
-            <%--}--%>
-        <%--}--%>
-    <%--</script>--%>
+
 
       <script type="text/javascript">
           var maxAmount = "99999999";

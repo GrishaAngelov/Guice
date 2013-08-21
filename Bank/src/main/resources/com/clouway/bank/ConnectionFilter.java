@@ -38,11 +38,6 @@ public class ConnectionFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-//        String url = filterConfig.getServletContext().getInitParameter("databaseURL");
-//        String user = filterConfig.getServletContext().getInitParameter("databaseUser");
-//        String password = filterConfig.getServletContext().getInitParameter("databasePassword");
-//
-//        setUpDatabaseConnection(url, user, password);
     }
 
     @Override
