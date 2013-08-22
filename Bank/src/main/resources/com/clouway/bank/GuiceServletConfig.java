@@ -16,7 +16,7 @@ public class GuiceServletConfig extends GuiceServletContextListener {
         return Guice.createInjector(new ServletModule() {
             @Override
             protected void configureServlets() {
-                bind(CredentialsValidator.class).to(UserCredentialsValidator.class);
+                bind(Validator.class).to(UserValidator.class);
                 bind(UserRepository.class).to(BankUserRepository.class);
                 bind(Account.class).to(BankAccount.class);
                 bind(ExpireTime.class).to(SessionExpireTime.class);

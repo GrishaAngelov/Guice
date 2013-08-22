@@ -10,11 +10,11 @@ import static junit.framework.Assert.assertTrue;
  * @author Grisha Angelov <grisha.angelov@clouway.com>
  */
 public class UserCredentialsValidatorTest {
-    private UserCredentialsValidator userCredentialsValidator;
+    private UserValidator userCredentialsValidator;
 
     @Before
     public void setUp() throws Exception {
-        userCredentialsValidator = new UserCredentialsValidator();
+        userCredentialsValidator = new UserValidator();
     }
 
     @Test

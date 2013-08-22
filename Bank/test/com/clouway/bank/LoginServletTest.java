@@ -17,7 +17,7 @@ import java.util.HashMap;
 */
 public class LoginServletTest {
     private LoginServlet loginServlet;
-    private CredentialsValidator credentialsValidator;
+    private Validator validator;
     private UserRepository userRepository;
     private ExpireTime sessionExpireTime;
     private Mockery context;
@@ -29,10 +29,10 @@ public class LoginServletTest {
         context = new Mockery();
         request = context.mock(HttpServletRequest.class);
         response = context.mock(HttpServletResponse.class);
-        credentialsValidator = context.mock(CredentialsValidator.class);
+        validator = context.mock(Validator.class);
         sessionExpireTime = context.mock(ExpireTime.class);
         userRepository = context.mock(UserRepository.class);
-        loginServlet = new LoginServlet(credentialsValidator, userRepository, sessionExpireTime);
+        loginServlet = new LoginServlet(validator, userRepository, sessionExpireTime);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{"123456"});
             }}));
 
-            oneOf(credentialsValidator).isValid(user);
+            oneOf(validator).isValid(user);
             will(returnValue(true));
 
             oneOf(userRepository).hasUser(new User("John", "123456"));
@@ -98,7 +98,7 @@ public class LoginServletTest {
             }}));
 
 
-            oneOf(credentialsValidator).isValid(user);
+            oneOf(validator).isValid(user);
             will(returnValue(true));
 
             oneOf(userRepository).hasUser(user);
@@ -123,7 +123,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{"123456"});
             }}));
 
-            oneOf(credentialsValidator).isValid(new User("", "123456"));
+            oneOf(validator).isValid(new User("", "123456"));
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");
@@ -145,7 +145,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{""});
             }}));
 
-            oneOf(credentialsValidator).isValid(new User("John", ""));
+            oneOf(validator).isValid(new User("John", ""));
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");
@@ -167,7 +167,7 @@ public class LoginServletTest {
                 put("passwordBox", new String[]{""});
             }}));
 
-            oneOf(credentialsValidator).isValid(new User("", ""));
+            oneOf(validator).isValid(new User("", ""));
             will(returnValue(false));
 
             oneOf(request).setAttribute("labelMessage", "*Please enter username and password");

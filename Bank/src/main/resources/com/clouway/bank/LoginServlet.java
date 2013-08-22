@@ -16,13 +16,13 @@ import java.util.Map;
 
 @Singleton
 public class LoginServlet extends HttpServlet {
-    private CredentialsValidator userCredentialsValidator;
+    private Validator userValidator;
     private UserRepository bankUserRepository;
     private ExpireTime sessionExpireTime;
 
     @Inject
-    public LoginServlet(CredentialsValidator userCredentialsValidator, UserRepository bankUserRepository, ExpireTime sessionExpireTime) {
-        this.userCredentialsValidator = userCredentialsValidator;
+    public LoginServlet(Validator userValidator, UserRepository bankUserRepository, ExpireTime sessionExpireTime) {
+        this.userValidator = userValidator;
         this.bankUserRepository = bankUserRepository;
         this.sessionExpireTime = sessionExpireTime;
     }
@@ -39,7 +39,7 @@ public class LoginServlet extends HttpServlet {
 
         User user = new User(username, password);
 
-        if (!userCredentialsValidator.isValid(user)) {
+        if (!userValidator.isValid(user)) {
             request.setAttribute("labelMessage", "*Please enter username and password");
             request.getRequestDispatcher("/login.jsp").forward(request, response);
         } else {

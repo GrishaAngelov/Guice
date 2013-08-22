@@ -16,7 +16,7 @@ import java.io.IOException;
  */
 public class RegisterFilterTest {
     private RegisterFilter registerFilter;
-    private CredentialsValidator credentialsValidator;
+    private Validator validator;
     private Mockery context;
     private HttpServletRequest request;
     private HttpServletResponse response;
@@ -28,8 +28,8 @@ public class RegisterFilterTest {
         request = context.mock(HttpServletRequest.class);
         response = context.mock(HttpServletResponse.class);
         filterChain = context.mock(FilterChain.class);
-        credentialsValidator = context.mock(CredentialsValidator.class);
-        registerFilter = new RegisterFilter(credentialsValidator);
+        validator = context.mock(Validator.class);
+        registerFilter = new RegisterFilter(validator);
     }
 
     @Test
@@ -42,7 +42,7 @@ public class RegisterFilterTest {
             oneOf(request).getParameter("passwordBox");
             will(returnValue("123456"));
 
-            oneOf(credentialsValidator).isValid(new User("John","123456"));
+            oneOf(validator).isValid(new User("John","123456"));
             will(returnValue(true));
 
             oneOf(filterChain).doFilter(request,response);
@@ -62,7 +62,7 @@ public class RegisterFilterTest {
             oneOf(request).getParameter("passwordBox");
             will(returnValue("123456"));
 
-            oneOf(credentialsValidator).isValid(new User("","123456"));
+            oneOf(validator).isValid(new User("","123456"));
             will(returnValue(false));
 
             oneOf(request).setAttribute("message", "Please enter username and/or password");
@@ -83,7 +83,7 @@ public class RegisterFilterTest {
             oneOf(request).getParameter("passwordBox");
             will(returnValue(""));
 
-            oneOf(credentialsValidator).isValid(new User("John",""));
+            oneOf(validator).isValid(new User("John",""));
             will(returnValue(false));
 
             oneOf(request).setAttribute("message", "Please enter username and/or password");
@@ -104,7 +104,7 @@ public class RegisterFilterTest {
             oneOf(request).getParameter("passwordBox");
             will(returnValue(""));
 
-            oneOf(credentialsValidator).isValid(new User("",""));
+            oneOf(validator).isValid(new User("",""));
             will(returnValue(false));
 
             oneOf(request).setAttribute("message", "Please enter username and/or password");

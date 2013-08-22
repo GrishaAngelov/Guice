@@ -12,11 +12,11 @@ import java.io.IOException;
 
 @Singleton
 public class RegisterFilter implements Filter {
-    private CredentialsValidator credentialsValidator;
+    private Validator validator;
 
     @Inject
-    public RegisterFilter(CredentialsValidator credentialsValidator) {
-        this.credentialsValidator = credentialsValidator;
+    public RegisterFilter(Validator validator) {
+        this.validator = validator;
     }
 
     @Override
@@ -28,7 +28,7 @@ public class RegisterFilter implements Filter {
         String username = request.getParameter("usernameBox");
         String password = request.getParameter("passwordBox");
 
-        if (credentialsValidator.isValid(new User(username, password))) {
+        if (validator.isValid(new User(username, password))) {
             chain.doFilter(request, response);
         } else {
             request.setAttribute("message", "Please enter username and/or password");
