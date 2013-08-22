@@ -55,9 +55,9 @@ public class BankAccount implements Account {
             public Boolean execute() throws SQLException {
                 boolean isSuccessful = false;
                 Statement statement = connection.createStatement();
-                BigDecimal oldAmount = getCurrentAmount(username);
+                BigDecimal currentAmount = getCurrentAmount(username);
                 checkIsUserExist(username);
-                if ((withdrawAmount.doubleValue() <= oldAmount.doubleValue()) && (withdrawAmount.doubleValue() > 0)) {
+                if (hasSufficientMoneyInAccount(currentAmount, withdrawAmount)) {
                     statement.execute("UPDATE bank_account SET amount = amount-" + withdrawAmount + " WHERE username='" + username + "'");
                     isSuccessful = true;
                 }
@@ -65,7 +65,6 @@ public class BankAccount implements Account {
             }
         });
     }
-
 
     @Override
     public BigDecimal getBalance(final String username) {
@@ -86,6 +85,7 @@ public class BankAccount implements Account {
             }
         });
     }
+
 
     private BigDecimal getCurrentAmount(final String username) throws SQLException {
         final PoolableConnection connection = ConnectionFilter.get();
@@ -133,5 +133,9 @@ public class BankAccount implements Account {
             shouldDeposit = newAmount.add(oldAmount).doubleValue() <= LIMIT_AMOUNT_VALUE;
         }
         return shouldDeposit;
+    }
+
+    private boolean hasSufficientMoneyInAccount(BigDecimal currentAmount, BigDecimal withdrawAmount) {
+        return (withdrawAmount.doubleValue() <= currentAmount.doubleValue()) && (withdrawAmount.doubleValue() > 0);
     }
 }
